@@ -30,7 +30,13 @@ export default async function handler(req, res) {
       generationConfig: {
         temperature: 0.1,
         maxOutputTokens: 2048,
-      }
+      },
+      safetySettings: [
+        { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
+        { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
+        { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
+        { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }
+      ]
     };
 
     const response = await fetch(
@@ -43,9 +49,12 @@ export default async function handler(req, res) {
     );
 
     const data = await response.json();
-    console.log('Gemini raw response:', JSON.stringify(data));
+    console.log('Gemini raw:', JSON.stringify(data).slice(0, 500));
     
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || 
+                 data.promptFeedback?.blockReason || 
+                 'Tidak ada response';
+                 
     res.status(200).json({ content: [{ type: 'text', text }] });
   } catch (err) {
     res.status(500).json({ error: err.message });
