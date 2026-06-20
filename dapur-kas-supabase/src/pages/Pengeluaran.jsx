@@ -58,7 +58,7 @@ export default function Pengeluaran() {
       const mediaType = file.type || 'image/jpeg';
 
       // Call Claude API dengan vision
-      const response = await fetch('/.netlify/functions/scan-nota', {
+      const response = await fetch('/api/scan-nota', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
