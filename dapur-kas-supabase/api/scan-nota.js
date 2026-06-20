@@ -18,10 +18,19 @@ export default async function handler(req, res) {
     const geminiBody = {
       contents: [{
         parts: [
-          { inline_data: { mime_type: imagePart.source.media_type, data: imagePart.source.data } },
-          { text: textPart.text }
+          { 
+            inline_data: { 
+              mime_type: imagePart?.source?.media_type || 'image/jpeg', 
+              data: imagePart?.source?.data || ''
+            } 
+          },
+          { text: textPart?.text || '' }
         ]
-      }]
+      }],
+      generationConfig: {
+        temperature: 0.1,
+        maxOutputTokens: 2048,
+      }
     };
 
     const response = await fetch(
@@ -34,8 +43,9 @@ export default async function handler(req, res) {
     );
 
     const data = await response.json();
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    console.log('Gemini raw response:', JSON.stringify(data));
     
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
     res.status(200).json({ content: [{ type: 'text', text }] });
   } catch (err) {
     res.status(500).json({ error: err.message });
