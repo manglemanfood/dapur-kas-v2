@@ -16,9 +16,6 @@ exports.handler = async (event) => {
   }
 
   const API_KEY = process.env.ANTHROPIC_API_KEY;
-  if (!API_KEY) {
-    return { statusCode: 500, body: JSON.stringify({ error: 'API key not configured' }) };
-  }
 
   try {
     const body = JSON.parse(event.body);
@@ -35,10 +32,7 @@ exports.handler = async (event) => {
     const data = await response.json();
     return {
       statusCode: 200,
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
     };
   } catch (err) {
