@@ -18,6 +18,7 @@ export default function Pengeluaran() {
   const [items, setItems] = useState([{ nama_item: '', kategori: 'Bahan Baku', jumlah: '1', satuan: 'pcs', harga_satuan: '', supplier: '' }]);
   const [saving, setSaving] = useState(false);
   const fileRef = useRef();
+  const cameraRef = useRef();
 
   useEffect(() => {
     fetchData();
@@ -57,7 +58,7 @@ export default function Pengeluaran() {
       const mediaType = file.type || 'image/jpeg';
 
       // Call Claude API dengan vision
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
+      const response = await fetch('/.netlify/functions/scan-nota', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -237,14 +238,15 @@ Pastikan harga dalam Rupiah (angka saja, tanpa simbol).`
         <div>
           {/* Upload area */}
           <div
-            onClick={() => !scanning && fileRef.current?.click()}
             style={{
               border: `2px dashed ${scanning ? '#f97316' : '#334155'}`,
-              borderRadius: 16, padding: 32, textAlign: 'center', cursor: scanning ? 'wait' : 'pointer',
+              borderRadius: 16, padding: 32, textAlign: 'center',
               background: scanning ? '#f9731610' : '#1e293b', marginBottom: 16, transition: 'all 0.3s'
             }}
           >
-            <input ref={fileRef} type="file" accept="image/*" capture="environment" style={{ display: 'none' }}
+            <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }}
+              onChange={e => e.target.files?.[0] && handleScanNota(e.target.files[0])} />
+            <input ref={cameraRef} type="file" accept="image/*" capture="environment" style={{ display: 'none' }}
               onChange={e => e.target.files?.[0] && handleScanNota(e.target.files[0])} />
 
             {scanning ? (
@@ -265,9 +267,18 @@ Pastikan harga dalam Rupiah (angka saja, tanpa simbol).`
             ) : (
               <div>
                 <div style={{ fontSize: 56, marginBottom: 12 }}>📷</div>
-                <div style={{ color: '#e2e8f0', fontWeight: 700, fontSize: 16 }}>Foto Nota / Upload Gambar</div>
-                <div style={{ color: '#64748b', fontSize: 13, marginTop: 6 }}>Kamera HP atau pilih dari galeri</div>
-                <div style={{ color: '#475569', fontSize: 12, marginTop: 8 }}>AI akan otomatis membaca item & harga</div>
+                <div style={{ color: '#e2e8f0', fontWeight: 700, fontSize: 16 }}>Foto Nota Belanja</div>
+                <div style={{ color: '#64748b', fontSize: 13, marginTop: 6 }}>AI akan otomatis membaca item & harga</div>
+                <div style={{ display: 'flex', gap: 10, justifyContent: 'center', marginTop: 16, flexWrap: 'wrap' }}>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); cameraRef.current?.click(); }}
+                    style={{ padding: '12px 20px', background: '#f97316', border: 'none', borderRadius: 12, color: '#fff', fontWeight: 700, cursor: 'pointer', fontSize: 14 }}
+                  >📸 Buka Kamera</button>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); fileRef.current?.click(); }}
+                    style={{ padding: '12px 20px', background: '#334155', border: 'none', borderRadius: 12, color: '#fff', fontWeight: 600, cursor: 'pointer', fontSize: 14 }}
+                  >🖼️ Pilih dari Galeri</button>
+                </div>
               </div>
             )}
           </div>
