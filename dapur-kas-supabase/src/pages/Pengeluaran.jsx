@@ -104,13 +104,33 @@ Pastikan harga dalam Rupiah (angka saja, tanpa simbol).`
       });
 
       const result = await response.json();
+      console.log('AI Response:', JSON.stringify(result));
       const text = result.content?.[0]?.text || '';
+      console.log('AI Text:', text);
 
-      // Parse JSON dari response
-      const jsonMatch = text.match(/\{[\s\S]*\}/);
-      if (!jsonMatch) throw new Error('Format tidak valid');
-
-      const parsed = JSON.parse(jsonMatch[0]);
+      // Parse JSON dari response - robust parsing
+      let parsed = null;
+      try {
+        // Try direct parse first
+        parsed = JSON.parse(text);
+      } catch {
+        // Try extract JSON block
+        const jsonMatch = text.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          try {
+            parsed = JSON.parse(jsonMatch[0]);
+          } catch {
+            // Try find last complete JSON
+            const matches = text.match(/\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}/g);
+            if (matches) {
+              for (const m of matches.reverse()) {
+                try { parsed = JSON.parse(m); if (parsed.items) break; } catch {}
+              }
+            }
+          }
+        }
+      }
+      if (!parsed) throw new Error('Format tidak valid: ' + text.slice(0, 100));
 
       // Update form dengan data dari AI
       if (parsed.tanggal && parsed.tanggal !== '') {
